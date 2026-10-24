@@ -5,6 +5,7 @@ Runs every strategy in strategies/ on every symbol in config.json. Each one runs
 in-sample (the earlier part of history) and out-of-sample (the last holdout_fraction,
 which the screen never tuned on). Costs are applied. Each run is repeated with
 slippage multiplied as a stress test. Writes to results/:
+  dashboard-data.json     what the web page reads (overwritten each run)
   backtest-<date>.json    full detail, including equity curves and trades
   leaderboard-<date>.csv  one row per strategy, sorted by out-of-sample return
   details-<date>.csv      one row per strategy, symbol and period
@@ -63,10 +64,11 @@ def run_strategy(strategy, bars, cfg, costs, stress_costs):
             bench = bench_close.reindex(d.index, method="ffill").dropna()
             bench_ret = float(bench.iloc[-1] / bench.iloc[0] - 1) if len(bench) > 1 else None
 
-            res = engine.run(d, des, costs, strategy.position_fraction)
+            exits = (strategy.position_fraction, strategy.stop_pct, strategy.target_pct)
+            res = engine.run(d, des, costs, *exits)
             m = metrics.compute(res["equity"], res["trades"], costs.starting_cash, bpy, bench_ret)
 
-            st = engine.run(d, des, stress_costs, strategy.position_fraction)
+            st = engine.run(d, des, stress_costs, *exits)
             sm = metrics.compute(st["equity"], st["trades"], stress_costs.starting_cash, bpy)
             m["stress_total_return_pct"] = sm["total_return_pct"]
             m["stress_win_rate_pct"] = sm["win_rate_pct"]
@@ -127,6 +129,32 @@ def leaderboard(runs):
     return board
 
 
+def dashboard_data(payload):
+    """
+    The compact file the web page reads: config, strategy descriptions, leaderboard,
+    per-stock results, and daily return curves. Written to results/dashboard-data.json.
+    """
+    start = payload["config"]["costs"]["starting_cash"]
+    curves, details = {}, []
+    for r in payload["runs"]:
+        key = f'{r["strategy"]}|{r["symbol"]}|{r["period"]}'
+        curves[key] = [[pd.Timestamp(k).strftime("%Y-%m-%d"), round((v / start - 1) * 100, 2)]
+                       for k, v in r["equity_daily"]]
+        m = r["metrics"]
+        details.append({"strategy": r["strategy"], "symbol": r["symbol"], "period": r["period"],
+                        **{k: m.get(k) for k in ["total_return_pct", "benchmark_return_pct",
+                                                  "vs_benchmark_pct", "win_rate_pct", "trades",
+                                                  "max_drawdown_pct", "stress_total_return_pct"]}})
+    return {
+        "generated": payload["generated"],
+        "config": payload["config"],
+        "strategies": payload["strategies"],
+        "leaderboard": payload["leaderboard"],
+        "details": details,
+        "curves": curves,
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", default=os.path.join(HERE, "config.json"))
@@ -167,6 +195,8 @@ def main():
     }
     with open(os.path.join(args.out_dir, f"backtest-{stamp}.json"), "w") as f:
         json.dump(clean(payload), f, indent=2)
+    with open(os.path.join(args.out_dir, "dashboard-data.json"), "w") as f:
+        json.dump(clean(dashboard_data(payload)), f, separators=(",", ":"))
     pd.DataFrame(board).to_csv(os.path.join(args.out_dir, f"leaderboard-{stamp}.csv"), index=False)
     details = pd.DataFrame([{"strategy": r["strategy"], "version": r["version"],
                              "symbol": r["symbol"], "period": r["period"], **r["metrics"]}

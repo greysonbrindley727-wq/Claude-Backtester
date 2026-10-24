@@ -18,6 +18,8 @@ class Strategy:
     changelog = []
     default_params = {}
     position_fraction = 1.0   # share of cash used per trade (1.0 = full account)
+    stop_pct = None           # stop-loss as a fraction of entry price, e.g. 0.02 = 2%. None = no stop.
+    target_pct = None         # take-profit as a fraction of entry price. None = no target.
 
     def __init__(self, **overrides):
         self.params = {**self.default_params, **overrides}
@@ -41,6 +43,8 @@ class Strategy:
             "timeframe": self.timeframe,
             "params": self.params,
             "position_fraction": self.position_fraction,
+            "stop_pct": self.stop_pct,
+            "target_pct": self.target_pct,
             "weaknesses": self.weaknesses,
             "changelog": self.changelog,
         }
