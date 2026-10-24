@@ -3,8 +3,9 @@ name: Backtest
 on:
   workflow_dispatch:
 
+# "write" lets the job save results back into the repo, so the web page updates.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   backtest:
@@ -26,7 +27,19 @@ jobs:
           APCA_API_SECRET_KEY: ${{ secrets.APCA_API_SECRET_KEY }}
         run: python run_backtests.py
 
-      - name: Save results and cached bars
+      - name: Save results and cached bars to the repo
+        run: |
+          git config user.name "backtest-bot"
+          git config user.email "backtest-bot@users.noreply.github.com"
+          git add results data
+          if git diff --cached --quiet; then
+            echo "No changes to save"
+          else
+            git commit -m "Backtest results $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Keep a copy as a download
         uses: actions/upload-artifact@v4
         with:
           name: backtest-results
