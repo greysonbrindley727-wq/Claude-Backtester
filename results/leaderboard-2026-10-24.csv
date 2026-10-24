@@ -1,0 +1,3 @@
+strategy,version,oos_mean_return_pct,oos_worst_symbol_pct,oos_symbols_profitable_pct,oos_vs_benchmark_pct,oos_mean_win_rate_pct,oos_mean_max_drawdown_pct,oos_mean_sharpe,oos_mean_pct_months_profitable,oos_trades,oos_stress_mean_return_pct,in_sample_mean_return_pct,overfit_gap_pct
+EMA Cross,1,7.88,-43.55,50.0,-21.35,29.87,-38.92,0.27,52.27,160,7.02,15.27,7.39
+RSI Reversion,1,-3.66,-100.0,50.0,-32.89,59.11,-30.72,0.12,33.52,54,-3.86,-33.2,-29.54
