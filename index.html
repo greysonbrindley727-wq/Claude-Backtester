@@ -22,6 +22,10 @@
   --c2: #b07a2a;
   --c3: #6d4a7e;
   --c4: #3c6aa0;
+  --c5: #9a5b3c;
+  --c6: #4f7a2e;
+  --c7: #8a3d5c;
+  --c8: #5f6b75;
   --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -42,6 +46,10 @@
     --c2: #e2a95a;
     --c3: #c49ad6;
     --c4: #8db7e6;
+    --c5: #e39a72;
+    --c6: #9cd17a;
+    --c7: #e58fb0;
+    --c8: #a9b4bd;
     color-scheme: dark;
   }
 }
@@ -59,6 +67,10 @@
   --c2: #e2a95a;
   --c3: #c49ad6;
   --c4: #8db7e6;
+  --c5: #e39a72;
+  --c6: #9cd17a;
+  --c7: #e58fb0;
+  --c8: #a9b4bd;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -242,7 +254,7 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
 .then(function (D) {
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
-  var PALETTE = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)"];
+  var PALETTE = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)", "var(--c7)", "var(--c8)"];
 
   function fmtPct(v, digits) {
     if (v === null || v === undefined || isNaN(v)) return "n/a";
@@ -433,8 +445,10 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
     });
 
     var W = 720, H = 320, L = 52, R = 14, T = 14, B = 30;
+    var spy = (D.benchmark && D.benchmark[period]) || [];
     var all = [];
     series.forEach(function (s) { s.pts.forEach(function (p) { all.push(p); }); });
+    spy.forEach(function (p) { all.push(p); });
     var svg = $("chart");
     if (!all.length) {
       svg.innerHTML = '<text x="' + W / 2 + '" y="' + H / 2 + '" text-anchor="middle">Pick a strategy to see its curve.</text>';
@@ -464,6 +478,10 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
       var anchor = f === 0 ? "start" : (f === 1 ? "end" : "middle");
       out.push('<text x="' + X(t) + '" y="' + (H - 8) + '" text-anchor="' + anchor + '">' + d + "</text>");
     });
+    if (spy.length) {
+      var spyD = spy.map(function (p, j) { return (j ? "L" : "M") + X(Date.parse(p[0])).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
+      out.push('<path d="' + spyD + '" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>');
+    }
     series.forEach(function (s) {
       if (!s.pts.length) return;
       var d = s.pts.map(function (p, j) { return (j ? "L" : "M") + X(Date.parse(p[0])).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
@@ -478,11 +496,16 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
       return '<label><input type="checkbox" data-strat="' + esc(n) + '"' + (shown[n] ? " checked" : "") + '><span class="swatch" style="background:' + color + '"></span>' + esc(n) + "</label>";
     }).join("");
 
+    if (spy.length) {
+      $("legend").innerHTML += '<span class="legend-note" style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;border-top:2px dashed var(--muted);display:inline-block"></span>SPY buy and hold</span>';
+    }
+
     var foot = series.map(function (s) {
       var last = s.pts.length ? s.pts[s.pts.length - 1][1] : null;
       return s.name + " ends " + fmtPct(last);
-    }).join(" · ");
-    $("chart-foot").textContent = foot + ". Dashed line is break-even.";
+    });
+    if (spy.length) foot.unshift("SPY buy and hold ends " + fmtPct(spy[spy.length - 1][1]));
+    $("chart-foot").textContent = foot.join(" · ") + ". Dashed grey line is SPY.";
   }
 
   $("legend").addEventListener("change", function (e) {

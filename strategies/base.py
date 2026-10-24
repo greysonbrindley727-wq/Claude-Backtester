@@ -20,6 +20,7 @@ class Strategy:
     position_fraction = 1.0   # share of cash used per trade (1.0 = full account)
     stop_pct = None           # stop-loss as a fraction of entry price, e.g. 0.02 = 2%. None = no stop.
     target_pct = None         # take-profit as a fraction of entry price. None = no target.
+    symbols = None            # limit to these stocks, e.g. ["SPY"]. None = every stock in config.json.
 
     def __init__(self, **overrides):
         self.params = {**self.default_params, **overrides}
@@ -45,6 +46,7 @@ class Strategy:
             "position_fraction": self.position_fraction,
             "stop_pct": self.stop_pct,
             "target_pct": self.target_pct,
+            "symbols": self.symbols,
             "weaknesses": self.weaknesses,
             "changelog": self.changelog,
         }

@@ -50,6 +50,8 @@ def run_strategy(strategy, bars, cfg, costs, stress_costs):
     runs = []
     bench_close = bars[cfg["benchmark"]]["close"]
     for symbol in cfg["symbols"]:
+        if strategy.symbols and symbol not in strategy.symbols:
+            continue
         df = bars[symbol]
         if len(df) < 50:
             continue
@@ -129,10 +131,29 @@ def leaderboard(runs):
     return board
 
 
-def dashboard_data(payload):
+def benchmark_curves(bars, cfg):
+    """
+    SPY buy and hold, as daily return from the first bar of each period.
+    Uses the same in-sample / out-of-sample split as the strategies.
+    """
+    df = bars[cfg["benchmark"]]
+    cut = df.index[int(len(df) * (1 - cfg["holdout_fraction"]))]
+    out = {}
+    for name, part in (("in_sample", df[df.index < cut]), ("out_of_sample", df[df.index >= cut])):
+        close = part["close"].resample("D").last().dropna()
+        if close.empty:
+            out[name] = []
+            continue
+        out[name] = [[k.strftime("%Y-%m-%d"), round((v / close.iloc[0] - 1) * 100, 2)]
+                     for k, v in close.items()]
+    return out
+
+
+def dashboard_data(payload, benchmark):
     """
     The compact file the web page reads: config, strategy descriptions, leaderboard,
-    per-stock results, and daily return curves. Written to results/dashboard-data.json.
+    per-stock results, daily return curves, and the SPY buy-and-hold curve.
+    Written to results/dashboard-data.json.
     """
     start = payload["config"]["costs"]["starting_cash"]
     curves, details = {}, []
@@ -152,6 +173,7 @@ def dashboard_data(payload):
         "leaderboard": payload["leaderboard"],
         "details": details,
         "curves": curves,
+        "benchmark": benchmark,
     }
 
 
@@ -196,7 +218,7 @@ def main():
     with open(os.path.join(args.out_dir, f"backtest-{stamp}.json"), "w") as f:
         json.dump(clean(payload), f, indent=2)
     with open(os.path.join(args.out_dir, "dashboard-data.json"), "w") as f:
-        json.dump(clean(dashboard_data(payload)), f, separators=(",", ":"))
+        json.dump(clean(dashboard_data(payload, benchmark_curves(bars, cfg))), f, separators=(",", ":"))
     pd.DataFrame(board).to_csv(os.path.join(args.out_dir, f"leaderboard-{stamp}.csv"), index=False)
     details = pd.DataFrame([{"strategy": r["strategy"], "version": r["version"],
                              "symbol": r["symbol"], "period": r["period"], **r["metrics"]}
