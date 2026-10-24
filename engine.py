@@ -7,6 +7,7 @@ Rules:
 - Sells pay SEC and FINRA fees. Rates live in config.json, so check current values.
 - Shorts pay a borrow fee for as long as they are open.
 - Position size is position_fraction of cash at entry, and stays fixed for that trade.
+  Fractional shares are allowed, so the full account is always used (Alpaca supports this).
 - A trade is one stretch of time in one direction. Reversing counts as a close and a new open.
 - Stop-loss and take-profit (optional, as a percent from the entry fill) are checked on each
   bar's high and low. If a bar opens past the level, the fill is at the open (a gap).
@@ -151,7 +152,7 @@ def run(df, desired, costs: Costs, position_fraction: float = 1.0,
                 close_trade(idx[i], opens[i], "signal")
             if want != 0:
                 price_with_slip = opens[i] * (1 + costs.slippage_bps / 10000)
-                shares = math.floor(cash * position_fraction / price_with_slip) * want
+                shares = (cash * position_fraction / price_with_slip) * want  # fractional shares, like Alpaca
                 if shares != 0:
                     cash_before = cash
                     d, fill, _ = _fill(shares, opens[i], costs)
