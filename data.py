@@ -51,12 +51,22 @@ def fetch_alpaca(symbol, timeframe, start, end, key, secret, feed="iex"):
 
 
 def load_bars(symbol, timeframe, start, end, data_dir):
+    """
+    Uses the cached file when it covers the requested dates. Otherwise downloads again,
+    so changing config.json's start date (e.g. back to 2016) fetches the older bars.
+    """
     path = os.path.join(data_dir, f"{symbol}_{timeframe}.csv")
-    if not os.path.exists(path):
+    need = True
+    if os.path.exists(path):
+        cached = load_csv(path)
+        covers_start = cached.index[0] <= pd.Timestamp(start, tz="UTC") + pd.Timedelta(days=10)
+        covers_end = cached.index[-1] >= pd.Timestamp(end, tz="UTC") - pd.Timedelta(days=10)
+        need = not (covers_start and covers_end)
+    if need:
         key = os.environ.get("APCA_API_KEY_ID")
         secret = os.environ.get("APCA_API_SECRET_KEY")
         if not (key and secret):
-            raise FileNotFoundError(f"No data file at {path}, and Alpaca keys are not set.")
+            raise FileNotFoundError(f"No complete data file at {path}, and Alpaca keys are not set.")
         raw = fetch_alpaca(symbol, timeframe, f"{start}T00:00:00Z", f"{end}T23:59:59Z",
                            key, secret)
         os.makedirs(data_dir, exist_ok=True)

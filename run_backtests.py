@@ -57,7 +57,8 @@ def run_strategy(strategy, bars, cfg, costs, stress_costs):
             continue
         desired = strategy.signals(df).shift(1).fillna(0).astype(int)
         cut = df.index[int(len(df) * (1 - cfg["holdout_fraction"]))]
-        periods = (("in_sample", df.index < cut), ("out_of_sample", df.index >= cut))
+        periods = (("in_sample", df.index < cut), ("out_of_sample", df.index >= cut),
+                   ("full", df.index >= df.index[0]))
         for period, mask in periods:
             d, des = df[mask], desired[mask]
             if len(d) < 2:
@@ -131,21 +132,31 @@ def leaderboard(runs):
     return board
 
 
+def weekly(points):
+    """Keep one point per week (the last one), so the results file stays small."""
+    if not points:
+        return []
+    s = pd.Series([p[1] for p in points], index=pd.to_datetime([p[0] for p in points]))
+    w = s.resample("W-FRI").last().dropna()
+    return [[k.strftime("%Y-%m-%d"), round(float(v), 2)] for k, v in w.items()]
+
+
 def benchmark_curves(bars, cfg):
     """
-    SPY buy and hold, as daily return from the first bar of each period.
+    SPY buy and hold, as return from the first bar of each period.
     Uses the same in-sample / out-of-sample split as the strategies.
     """
     df = bars[cfg["benchmark"]]
     cut = df.index[int(len(df) * (1 - cfg["holdout_fraction"]))]
     out = {}
-    for name, part in (("in_sample", df[df.index < cut]), ("out_of_sample", df[df.index >= cut])):
+    parts = (("in_sample", df[df.index < cut]), ("out_of_sample", df[df.index >= cut]), ("full", df))
+    for name, part in parts:
         close = part["close"].resample("D").last().dropna()
         if close.empty:
             out[name] = []
             continue
-        out[name] = [[k.strftime("%Y-%m-%d"), round((v / close.iloc[0] - 1) * 100, 2)]
-                     for k, v in close.items()]
+        out[name] = weekly([[k.strftime("%Y-%m-%d"), (v / close.iloc[0] - 1) * 100]
+                            for k, v in close.items()])
     return out
 
 
@@ -159,8 +170,8 @@ def dashboard_data(payload, benchmark):
     curves, details = {}, []
     for r in payload["runs"]:
         key = f'{r["strategy"]}|{r["symbol"]}|{r["period"]}'
-        curves[key] = [[pd.Timestamp(k).strftime("%Y-%m-%d"), round((v / start - 1) * 100, 2)]
-                       for k, v in r["equity_daily"]]
+        curves[key] = weekly([[pd.Timestamp(k).strftime("%Y-%m-%d"), (v / start - 1) * 100]
+                              for k, v in r["equity_daily"]])
         m = r["metrics"]
         details.append({"strategy": r["strategy"], "symbol": r["symbol"], "period": r["period"],
                         **{k: m.get(k) for k in ["total_return_pct", "benchmark_return_pct",

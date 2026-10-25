@@ -6,8 +6,6 @@
 <title>Strategy Backtest Board</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
 <style>
-/* Layout: one column, centered, with a sideways-safe gutter.
-   Tables scroll inside their own box. Charts scale to the column. */
 :root {
   --bg: #f4f3ee;
   --surface: #fbfaf6;
@@ -93,10 +91,11 @@ h3 { font-size: 15px; font-weight: 600; }
 p { margin: 0; max-width: 68ch; }
 .kicker { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 500; }
 .muted { color: var(--muted); }
-.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .good { color: var(--good); }
 .bad { color: var(--bad); }
 .warn { color: var(--warn); }
+[hidden] { display: none !important; }
 
 header.top { display: grid; gap: 14px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
 header.top .meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 13px; }
@@ -111,6 +110,8 @@ section { margin-top: 40px; min-width: 0; }
   border-radius: 6px;
   padding: 12px 14px;
   font-size: 14px;
+  display: grid;
+  gap: 8px;
 }
 .note strong { font-weight: 600; }
 
@@ -121,14 +122,14 @@ section { margin-top: 40px; min-width: 0; }
 .card dd { margin: 0; min-width: 0; }
 .tag { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 
-.filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
-.filters label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
-.filters input[type="number"], .filters select {
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+.controls label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.controls input[type="number"], .controls input[type="date"], .controls select {
   font: inherit; font-size: 14px; color: var(--ink); background: var(--bg);
-  border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; min-width: 110px;
+  border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; min-width: 120px;
 }
-.filters .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); padding-bottom: 6px; }
-.filters button { font: inherit; font-size: 13px; background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 5px; padding: 6px 10px; cursor: pointer; }
+.controls .check { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink); padding-bottom: 6px; }
+.controls button { font: inherit; font-size: 13px; background: none; border: 1px solid var(--line); color: var(--ink); border-radius: 5px; padding: 6px 10px; cursor: pointer; }
 
 .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
@@ -137,7 +138,7 @@ th:first-child, td:first-child { text-align: left; position: sticky; left: 0; ba
 thead th { font-weight: 500; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 tbody tr:last-child td { border-bottom: 0; }
 th button { font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-th button:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, select:focus-visible, input:focus-visible, label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 th .arrow { color: var(--accent); }
 tbody tr.clickable { cursor: pointer; }
 tbody tr.clickable:hover td { background: var(--bg); }
@@ -145,14 +146,11 @@ tr.selected td { background: var(--bg); }
 .empty { padding: 20px; color: var(--muted); text-align: center; }
 
 .chart-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
-.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; margin-bottom: 10px; }
-.controls label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
-.controls select { font: inherit; font-size: 14px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; }
-.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; margin: 8px 0 0; }
-.legend label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
-.swatch { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
 svg.chart { width: 100%; height: auto; display: block; }
 svg.chart text { fill: var(--muted); font-family: var(--mono); font-size: 11px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; margin: 10px 0 0; }
+.legend label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.swatch { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
 .chart-foot { font-size: 13px; color: var(--muted); margin-top: 8px; }
 
 .stats { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
@@ -169,8 +167,8 @@ svg.chart text { fill: var(--muted); font-family: var(--mono); font-size: 11px; 
   <header class="top">
     <div class="kicker">Backtest board</div>
     <h1>Strategy backtest results</h1>
-    <p class="muted">Each strategy is tested on real daily bars, after costs and slippage. The last 30% of history is kept aside as out-of-sample, so no strategy is judged on the data it was built around.</p>
-    <div class="meta" id="meta"></div>
+    <p class="muted">Each strategy is tested on real daily bars, after costs and slippage. The last 30% of history is kept aside as out-of-sample, so no strategy is judged only on the data it was built around.</p>
+    <div class="meta" id="meta"><span>Loading results…</span></div>
   </header>
 
   <section>
@@ -180,17 +178,31 @@ svg.chart text { fill: var(--muted); font-family: var(--mono); font-size: 11px; 
   <section>
     <div class="section-head">
       <h2>Leaderboard</h2>
-      <span class="legend-note">Out-of-sample, averaged across stocks. Click a column to sort. Click a row to see it per stock.</span>
+      <span class="legend-note">Click a column to sort. Click a row to see it per stock.</span>
     </div>
-    <div class="filters" id="filters">
+    <div class="controls">
+      <label>Period
+        <select id="period">
+          <option value="oos">Out-of-sample (last 30%)</option>
+          <option value="ins">In-sample (first 70%)</option>
+          <option value="full">Full history</option>
+          <option value="custom">Custom dates</option>
+        </select>
+      </label>
+      <label data-custom hidden>From
+        <input type="date" id="from">
+      </label>
+      <label data-custom hidden>To
+        <input type="date" id="to">
+      </label>
       <label>Min return (%)
-        <input type="number" id="f-ret" step="1" value="" placeholder="any">
+        <input type="number" id="f-ret" step="1" placeholder="any">
       </label>
       <label>Min trades
-        <input type="number" id="f-trades" step="1" min="0" value="" placeholder="any">
+        <input type="number" id="f-trades" step="1" min="0" placeholder="any">
       </label>
       <label>Min stocks profitable (%)
-        <input type="number" id="f-prof" step="5" min="0" max="100" value="" placeholder="any">
+        <input type="number" id="f-prof" step="5" min="0" max="100" placeholder="any">
       </label>
       <label class="check"><input type="checkbox" id="f-stress"> Still positive under double slippage</label>
       <button type="button" id="f-reset">Clear filters</button>
@@ -199,7 +211,7 @@ svg.chart text { fill: var(--muted); font-family: var(--mono); font-size: 11px; 
       <thead><tr id="lb-head"></tr></thead>
       <tbody id="lb-body"></tbody>
     </table></div>
-    <p class="legend-note" style="margin-top:8px">Overfit gap is in-sample return minus out-of-sample return. A large positive gap means the strategy looked better on the data it was built on than on new data.</p>
+    <p class="legend-note" id="lb-note" style="margin-top:8px"></p>
   </section>
 
   <section>
@@ -218,16 +230,10 @@ svg.chart text { fill: var(--muted); font-family: var(--mono); font-size: 11px; 
   <section>
     <div class="section-head">
       <h2>Equity curves</h2>
-      <span class="legend-note">Return from a $1,000 start, after costs.</span>
+      <span class="legend-note">Return from the start of the chosen period.</span>
     </div>
     <div class="chart-wrap">
-      <div class="controls">
-        <label>Period
-          <select id="chart-period">
-            <option value="out_of_sample">Out-of-sample (new data)</option>
-            <option value="in_sample">In-sample (used to build)</option>
-          </select>
-        </label>
+      <div class="controls" style="background:none;border:0;padding:0;margin-bottom:6px">
         <label>Stock
           <select id="chart-symbol"></select>
         </label>
@@ -255,75 +261,151 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
   "use strict";
   var $ = function (id) { return document.getElementById(id); };
   var PALETTE = ["var(--c1)", "var(--c2)", "var(--c3)", "var(--c4)", "var(--c5)", "var(--c6)", "var(--c7)", "var(--c8)"];
+  var cfg = D.config;
+  var symbols = cfg.symbols.slice();
+  var names = D.strategies.map(function (s) { return s.name; });
+  var lbPre = D.leaderboard;
 
-  function fmtPct(v, digits) {
-    if (v === null || v === undefined || isNaN(v)) return "n/a";
-    var d = digits === undefined ? 1 : digits;
-    return (v > 0 ? "+" : "") + Number(v).toFixed(d) + "%";
-  }
-  function fmtNum(v, d) {
-    if (v === null || v === undefined || isNaN(v)) return "n/a";
-    return Number(v).toFixed(d === undefined ? 2 : d);
-  }
-  function cls(v) {
-    if (v === null || v === undefined || isNaN(v)) return "";
-    return v > 0 ? "good" : (v < 0 ? "bad" : "");
-  }
   function esc(s) {
     return String(s === null || s === undefined ? "" : s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function td(text, klass) {
-    return '<td class="num ' + (klass || "") + '">' + text + "</td>";
+  function isNum(v) { return v !== null && v !== undefined && !isNaN(v); }
+  function fmtPct(v, d) {
+    if (!isNum(v)) return "—";
+    return (v > 0 ? "+" : "") + Number(v).toFixed(d === undefined ? 1 : d) + "%";
+  }
+  function fmtNum(v, d) { return isNum(v) ? Number(v).toFixed(d === undefined ? 2 : d) : "—"; }
+  function cls(v) { return !isNum(v) ? "" : (v > 0 ? "good" : (v < 0 ? "bad" : "")); }
+  function avg(a) { var ok = a.filter(isNum); return ok.length ? ok.reduce(function (x, y) { return x + y; }, 0) / ok.length : null; }
+  function td(text, klass) { return '<td class="num ' + (klass || "") + '">' + text + "</td>"; }
+
+  /* ---- Periods ---- */
+  var MODES = {
+    oos:    { curve: "out_of_sample", label: "Out-of-sample" },
+    ins:    { curve: "in_sample",     label: "In-sample" },
+    full:   { curve: "full",          label: "Full history" },
+    custom: { curve: "full",          label: "Custom dates" }
+  };
+  var mode = "oos";
+  var sort = { key: "oos_mean_return_pct", dir: -1 };
+  var selected = names[0] || null;
+  var shown = {};
+  names.forEach(function (n) { shown[n] = true; });
+
+  $("from").min = $("to").min = cfg.start;
+  $("from").max = $("to").max = cfg.end;
+  $("from").value = cfg.start;
+  $("to").value = cfg.end;
+
+  function win() {
+    var m = MODES[mode];
+    if (mode === "custom") return { curve: m.curve, from: $("from").value || null, to: $("to").value || null };
+    return { curve: m.curve, from: null, to: null };
+  }
+
+  // Rebase a weekly return curve to the window's start. Returns [date, % since window start].
+  function windowCurve(points, from, to) {
+    var base = 1, out = [];
+    (points || []).forEach(function (p) {
+      if (from && p[0] < from) { base = 1 + p[1] / 100; return; }
+      if (to && p[0] > to) return;
+      out.push(p);
+    });
+    return out.map(function (p) { return [p[0], ((1 + p[1] / 100) / base - 1) * 100]; });
+  }
+  function maxDrawdown(pts) {
+    var eq = [1].concat(pts.map(function (p) { return 1 + p[1] / 100; }));
+    var peak = eq[0], worst = 0;
+    eq.forEach(function (v) { peak = Math.max(peak, v); worst = Math.min(worst, v / peak - 1); });
+    return worst * 100;
+  }
+  function curveFor(strategy, symbol, curve) { return D.curves[strategy + "|" + symbol + "|" + curve] || []; }
+  function seriesPoints(strategy, symbol) {
+    var w = win();
+    return windowCurve(curveFor(strategy, symbol, w.curve), w.from, w.to);
+  }
+  function symbolsFor(strategy) {
+    return symbols.filter(function (s) { return curveFor(strategy, s, win().curve).length > 0; });
+  }
+  function benchmarkWindow() {
+    var w = win();
+    return windowCurve(D.benchmark[w.curve] || [], w.from, w.to);
   }
 
   /* ---- Meta and summary ---- */
-  var cfg = D.config;
   $("meta").innerHTML = [
     "Updated " + esc(D.generated),
-    "Stocks: " + esc(cfg.symbols.join(", ")),
+    "Stocks: " + esc(symbols.join(", ")),
     "Dates: " + esc(cfg.start) + " to " + esc(cfg.end),
-    "Timeframe: " + esc(cfg.timeframe),
     "Start: $" + Number(cfg.costs.starting_cash).toLocaleString(),
     "Holdout: last " + Math.round(cfg.holdout_fraction * 100) + "%"
   ].map(function (t) { return "<span>" + t + "</span>"; }).join("");
 
-  var lb = D.leaderboard;
-  var best = lb.slice().sort(function (a, b) { return b.oos_mean_return_pct - a.oos_mean_return_pct; })[0];
-  var profitable = lb.filter(function (r) { return r.oos_stress_mean_return_pct > 0; }).length;
+  var bestPre = lbPre.slice().sort(function (a, b) { return b.oos_mean_return_pct - a.oos_mean_return_pct; })[0];
+  var profitable = lbPre.filter(function (r) { return r.oos_stress_mean_return_pct > 0; }).length;
   $("stats").innerHTML = [
-    { l: "Strategies tested", v: lb.length },
-    { l: "Stocks per strategy", v: cfg.symbols.length },
-    { l: "Best out-of-sample return", v: best ? fmtPct(best.oos_mean_return_pct) : "n/a", k: best ? cls(best.oos_mean_return_pct) : "" },
-    { l: "Positive under stress", v: profitable + " of " + lb.length }
+    { l: "Strategies tested", v: names.length },
+    { l: "Best out-of-sample return", v: bestPre ? fmtPct(bestPre.oos_mean_return_pct) : "—", k: bestPre ? cls(bestPre.oos_mean_return_pct) : "" },
+    { l: "Positive under stress", v: profitable + " of " + lbPre.length },
+    { l: "Start of data", v: cfg.start }
   ].map(function (s) {
     return '<div class="stat"><div class="l">' + esc(s.l) + '</div><div class="v ' + (s.k || "") + '">' + esc(s.v) + "</div></div>";
   }).join("");
 
   /* ---- Leaderboard ---- */
   var COLS = [
-    { key: "strategy", label: "Strategy", fmt: function (r) { return esc(r.strategy); }, text: true },
-    { key: "oos_mean_return_pct", label: "OOS return", fmt: function (r) { return td(fmtPct(r.oos_mean_return_pct), cls(r.oos_mean_return_pct)); }, raw: true },
-    { key: "oos_worst_symbol_pct", label: "Worst stock", fmt: function (r) { return td(fmtPct(r.oos_worst_symbol_pct), cls(r.oos_worst_symbol_pct)); }, raw: true },
-    { key: "oos_symbols_profitable_pct", label: "Stocks profitable", fmt: function (r) { return td(fmtNum(r.oos_symbols_profitable_pct, 0) + "%"); }, raw: true },
-    { key: "oos_vs_benchmark_pct", label: "vs SPY", fmt: function (r) { return td(fmtPct(r.oos_vs_benchmark_pct), cls(r.oos_vs_benchmark_pct)); }, raw: true },
-    { key: "oos_mean_win_rate_pct", label: "Win rate", fmt: function (r) { return td(fmtNum(r.oos_mean_win_rate_pct, 1) + "%"); }, raw: true },
-    { key: "oos_mean_max_drawdown_pct", label: "Max drawdown", fmt: function (r) { return td(fmtPct(r.oos_mean_max_drawdown_pct), "bad"); }, raw: true },
-    { key: "oos_mean_sharpe", label: "Sharpe", fmt: function (r) { return td(fmtNum(r.oos_mean_sharpe, 2)); }, raw: true },
-    { key: "oos_trades", label: "Trades", fmt: function (r) { return td(r.oos_trades); }, raw: true },
-    { key: "oos_stress_mean_return_pct", label: "Stress return", fmt: function (r) { return td(fmtPct(r.oos_stress_mean_return_pct), cls(r.oos_stress_mean_return_pct)); }, raw: true },
-    { key: "overfit_gap_pct", label: "Overfit gap", fmt: function (r) { return td(fmtPct(r.overfit_gap_pct), r.overfit_gap_pct > 10 ? "warn" : ""); }, raw: true }
+    { key: "strategy", label: "Strategy", text: true },
+    { key: "oos_mean_return_pct", label: "Return", fmt: function (r) { return td(fmtPct(r.oos_mean_return_pct), cls(r.oos_mean_return_pct)); } },
+    { key: "oos_worst_symbol_pct", label: "Worst stock", fmt: function (r) { return td(fmtPct(r.oos_worst_symbol_pct), cls(r.oos_worst_symbol_pct)); } },
+    { key: "oos_symbols_profitable_pct", label: "Stocks profitable", fmt: function (r) { return td(isNum(r.oos_symbols_profitable_pct) ? fmtNum(r.oos_symbols_profitable_pct, 0) + "%" : "—"); } },
+    { key: "oos_vs_benchmark_pct", label: "vs SPY", fmt: function (r) { return td(fmtPct(r.oos_vs_benchmark_pct), cls(r.oos_vs_benchmark_pct)); } },
+    { key: "oos_mean_win_rate_pct", label: "Win rate", fmt: function (r) { return td(isNum(r.oos_mean_win_rate_pct) ? fmtNum(r.oos_mean_win_rate_pct, 1) + "%" : "—"); } },
+    { key: "oos_mean_max_drawdown_pct", label: "Max drawdown", fmt: function (r) { return td(fmtPct(r.oos_mean_max_drawdown_pct), "bad"); } },
+    { key: "oos_mean_sharpe", label: "Sharpe", fmt: function (r) { return td(fmtNum(r.oos_mean_sharpe, 2)); } },
+    { key: "oos_trades", label: "Trades", fmt: function (r) { return td(isNum(r.oos_trades) ? r.oos_trades : "—"); } },
+    { key: "oos_stress_mean_return_pct", label: "Stress return", fmt: function (r) { return td(fmtPct(r.oos_stress_mean_return_pct), cls(r.oos_stress_mean_return_pct)); } },
+    { key: "overfit_gap_pct", label: "Overfit gap", fmt: function (r) { return td(fmtPct(r.overfit_gap_pct), isNum(r.overfit_gap_pct) && r.overfit_gap_pct > 10 ? "warn" : ""); } }
   ];
-  var sort = { key: "oos_mean_return_pct", dir: -1 };
-  var selectedStrategy = lb.length ? lb[0].strategy : null;
 
-  function numOrNull(id) {
-    var v = $(id).value;
-    return v === "" ? null : Number(v);
+  // Preset periods use the stored results. Full history and custom dates are rebuilt from the curves.
+  function leaderboardRows() {
+    if (mode === "oos" || mode === "ins") {
+      return lbPre.slice();
+    }
+    var spy = benchmarkWindow();
+    var spyRet = spy.length ? spy[spy.length - 1][1] : null;
+    return names.map(function (s) {
+      var rets = [], dds = [], profit = 0;
+      symbolsFor(s).forEach(function (sym) {
+        var pts = seriesPoints(s, sym);
+        if (!pts.length) return;
+        var r = pts[pts.length - 1][1];
+        rets.push(r); dds.push(maxDrawdown(pts));
+        if (r > 0) profit++;
+      });
+      var n = rets.length;
+      var mean = avg(rets);
+      return {
+        strategy: s,
+        oos_mean_return_pct: mean,
+        oos_worst_symbol_pct: n ? Math.min.apply(null, rets) : null,
+        oos_symbols_profitable_pct: n ? profit / n * 100 : null,
+        oos_vs_benchmark_pct: (isNum(mean) && isNum(spyRet)) ? mean - spyRet : null,
+        oos_mean_win_rate_pct: null,
+        oos_mean_max_drawdown_pct: avg(dds),
+        oos_mean_sharpe: null,
+        oos_trades: null,
+        oos_stress_mean_return_pct: null,
+        overfit_gap_pct: null
+      };
+    });
   }
+
   function passes(r) {
-    var minRet = numOrNull("f-ret"), minTr = numOrNull("f-trades"), minProf = numOrNull("f-prof");
+    var v = function (id) { var x = $(id).value; return x === "" ? null : Number(x); };
+    var minRet = v("f-ret"), minTr = v("f-trades"), minProf = v("f-prof");
     if (minRet !== null && !(r.oos_mean_return_pct >= minRet)) return false;
     if (minTr !== null && !(r.oos_trades >= minTr)) return false;
     if (minProf !== null && !(r.oos_symbols_profitable_pct >= minProf)) return false;
@@ -332,28 +414,26 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
   }
 
   function renderLeaderboard() {
-    var head = COLS.map(function (c) {
+    $("lb-head").innerHTML = COLS.map(function (c) {
       var arrow = c.key === sort.key ? '<span class="arrow">' + (sort.dir < 0 ? "▼" : "▲") + "</span>" : "";
-      return '<th><button type="button" data-key="' + c.key + '">' + esc(c.label) + " " + arrow + "</button></th>";
+      return "<th><button type=\"button\" data-key=\"" + c.key + "\">" + esc(c.label) + " " + arrow + "</button></th>";
     }).join("");
-    $("lb-head").innerHTML = head;
 
-    var rows = lb.filter(passes).slice().sort(function (a, b) {
+    var rows = leaderboardRows().filter(passes).sort(function (a, b) {
       var x = a[sort.key], y = b[sort.key];
       if (typeof x === "string") return x.localeCompare(y) * sort.dir;
-      x = x === null ? -Infinity : x; y = y === null ? -Infinity : y;
+      x = isNum(x) ? x : -Infinity; y = isNum(y) ? y : -Infinity;
       return (x - y) * sort.dir;
     });
 
-    if (!rows.length) {
-      $("lb-body").innerHTML = '<tr><td colspan="' + COLS.length + '" class="empty">No strategy passes these filters.</td></tr>';
-      return;
-    }
-    $("lb-body").innerHTML = rows.map(function (r) {
-      return '<tr class="clickable' + (r.strategy === selectedStrategy ? " selected" : "") + '" data-strategy="' + esc(r.strategy) + '">' +
-        COLS.map(function (c) { return c.text ? '<td>' + c.fmt(r) + "</td>" : c.fmt(r); }).join("") +
-        "</tr>";
-    }).join("");
+    $("lb-body").innerHTML = rows.length ? rows.map(function (r) {
+      return '<tr class="clickable' + (r.strategy === selected ? " selected" : "") + '" data-strategy="' + esc(r.strategy) + '">' +
+        COLS.map(function (c) { return c.text ? "<td>" + esc(r.strategy) + "</td>" : c.fmt(r); }).join("") + "</tr>";
+    }).join("") : '<tr><td colspan="' + COLS.length + '" class="empty">No strategy passes these filters.</td></tr>';
+
+    $("lb-note").textContent = (mode === "oos" || mode === "ins")
+      ? "Stored results for this period. Win rate, trades and stress test are available here."
+      : "Rebuilt from the equity curves for these dates. Win rate, trade count and stress test are only shown for the preset periods.";
   }
 
   $("lb-head").addEventListener("click", function (e) {
@@ -367,10 +447,9 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
   $("lb-body").addEventListener("click", function (e) {
     var tr = e.target.closest("tr[data-strategy]");
     if (!tr) return;
-    selectedStrategy = tr.getAttribute("data-strategy");
-    $("stock-pick").value = selectedStrategy;
-    renderLeaderboard();
-    renderStocks();
+    selected = tr.getAttribute("data-strategy");
+    $("stock-pick").value = selected;
+    renderAll();
   });
   ["f-ret", "f-trades", "f-prof", "f-stress"].forEach(function (id) {
     $(id).addEventListener("input", renderLeaderboard);
@@ -380,55 +459,59 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
     $("f-ret").value = ""; $("f-trades").value = ""; $("f-prof").value = ""; $("f-stress").checked = false;
     renderLeaderboard();
   });
+  $("period").addEventListener("change", function () {
+    mode = $("period").value;
+    document.querySelectorAll("[data-custom]").forEach(function (el) { el.hidden = mode !== "custom"; });
+    renderAll();
+  });
+  $("from").addEventListener("change", renderAll);
+  $("to").addEventListener("change", renderAll);
 
   /* ---- Per stock ---- */
-  var STOCK_COLS = [
-    { label: "Stock", fmt: function (r) { return esc(r.symbol); }, text: true },
-    { label: "Return", fmt: function (r) { return td(fmtPct(r.total_return_pct), cls(r.total_return_pct)); } },
-    { label: "SPY", fmt: function (r) { return td(fmtPct(r.benchmark_return_pct), cls(r.benchmark_return_pct)); } },
-    { label: "vs SPY", fmt: function (r) { return td(fmtPct(r.vs_benchmark_pct), cls(r.vs_benchmark_pct)); } },
-    { label: "Win rate", fmt: function (r) { return td(fmtNum(r.win_rate_pct, 1) + "%"); } },
-    { label: "Trades", fmt: function (r) { return td(r.trades); } },
-    { label: "Max drawdown", fmt: function (r) { return td(fmtPct(r.max_drawdown_pct), "bad"); } },
-    { label: "Stress return", fmt: function (r) { return td(fmtPct(r.stress_total_return_pct), cls(r.stress_total_return_pct)); } }
-  ];
-
-  function renderStocks() {
-    var name = $("stock-pick").value || selectedStrategy;
-    $("stock-title").textContent = "Per stock: " + name;
-    var period = "out_of_sample";
-    $("stock-head").innerHTML = STOCK_COLS.map(function (c) { return "<th>" + esc(c.label) + "</th>"; }).join("");
-    var rows = D.details.filter(function (r) { return r.strategy === name && r.period === period; });
-    rows.sort(function (a, b) { return b.total_return_pct - a.total_return_pct; });
-    $("stock-body").innerHTML = rows.map(function (r) {
-      return "<tr>" + STOCK_COLS.map(function (c) { return c.text ? "<td>" + c.fmt(r) + "</td>" : c.fmt(r); }).join("") + "</tr>";
-    }).join("") || '<tr><td colspan="' + STOCK_COLS.length + '" class="empty">No out-of-sample results.</td></tr>';
+  function stockRows(name) {
+    if (mode === "oos" || mode === "ins") {
+      return D.details.filter(function (r) { return r.strategy === name && r.period === MODES[mode].curve; })
+        .map(function (r) {
+          return { symbol: r.symbol, ret: r.total_return_pct, spy: r.benchmark_return_pct, vs: r.vs_benchmark_pct,
+                   win: r.win_rate_pct, trades: r.trades, dd: r.max_drawdown_pct, stress: r.stress_total_return_pct };
+        });
+    }
+    var spy = benchmarkWindow();
+    var spyRet = spy.length ? spy[spy.length - 1][1] : null;
+    return symbolsFor(name).map(function (sym) {
+      var pts = seriesPoints(name, sym);
+      var r = pts.length ? pts[pts.length - 1][1] : null;
+      return { symbol: sym, ret: r, spy: spyRet, vs: (isNum(r) && isNum(spyRet)) ? r - spyRet : null,
+               win: null, trades: null, dd: pts.length ? maxDrawdown(pts) : null, stress: null };
+    });
   }
-
-  var strategyNames = lb.map(function (r) { return r.strategy; });
-  $("stock-pick").innerHTML = strategyNames.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + "</option>"; }).join("");
+  function renderStocks() {
+    var name = $("stock-pick").value || selected;
+    $("stock-title").textContent = "Per stock: " + name;
+    var head = ["Stock", "Return", "SPY (same dates)", "vs SPY", "Win rate", "Trades", "Max drawdown", "Stress return"];
+    $("stock-head").innerHTML = head.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("");
+    var rows = stockRows(name).sort(function (a, b) { return (b.ret || -Infinity) - (a.ret || -Infinity); });
+    $("stock-body").innerHTML = rows.length ? rows.map(function (r) {
+      return "<tr><td>" + esc(r.symbol) + "</td>" +
+        td(fmtPct(r.ret), cls(r.ret)) + td(fmtPct(r.spy), cls(r.spy)) + td(fmtPct(r.vs), cls(r.vs)) +
+        td(isNum(r.win) ? fmtNum(r.win, 1) + "%" : "—") + td(isNum(r.trades) ? r.trades : "—") +
+        td(fmtPct(r.dd), "bad") + td(fmtPct(r.stress), cls(r.stress)) + "</tr>";
+    }).join("") : '<tr><td colspan="' + head.length + '" class="empty">This strategy has no results for these dates.</td></tr>';
+  }
+  $("stock-pick").innerHTML = names.map(function (n) { return '<option value="' + esc(n) + '">' + esc(n) + "</option>"; }).join("");
   $("stock-pick").addEventListener("change", function () {
-    selectedStrategy = $("stock-pick").value;
-    renderLeaderboard();
-    renderStocks();
+    selected = $("stock-pick").value;
+    renderAll();
   });
 
   /* ---- Equity chart ---- */
-  var symbols = cfg.symbols.slice();
   $("chart-symbol").innerHTML = '<option value="__avg">All stocks (average)</option>' +
     symbols.map(function (s) { return '<option value="' + esc(s) + '">' + esc(s) + "</option>"; }).join("");
 
-  var shown = {};
-  strategyNames.forEach(function (n, i) { shown[n] = i < 2; });
-
-  function curveFor(strategy, symbol, period) {
-    var key = strategy + "|" + symbol + "|" + period;
-    return D.curves[key] || [];
-  }
-  function averageCurve(strategy, period) {
+  function averagePoints(strategy) {
     var acc = {};
-    symbols.forEach(function (s) {
-      curveFor(strategy, s, period).forEach(function (p) {
+    symbols.forEach(function (sym) {
+      seriesPoints(strategy, sym).forEach(function (p) {
         if (!acc[p[0]]) acc[p[0]] = { sum: 0, n: 0 };
         acc[p[0]].sum += p[1]; acc[p[0]].n += 1;
       });
@@ -437,21 +520,20 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
   }
 
   function renderChart() {
-    var period = $("chart-period").value;
     var sym = $("chart-symbol").value;
-    var series = strategyNames.filter(function (n) { return shown[n]; }).map(function (n, idx) {
-      var pts = sym === "__avg" ? averageCurve(n, period) : curveFor(n, sym, period);
-      return { name: n, pts: pts, color: PALETTE[strategyNames.indexOf(n) % PALETTE.length] };
+    var colorOf = function (n) { return PALETTE[names.indexOf(n) % PALETTE.length]; };
+    var series = names.filter(function (n) { return shown[n]; }).map(function (n) {
+      return { name: n, pts: sym === "__avg" ? averagePoints(n) : seriesPoints(n, sym), color: colorOf(n) };
     });
+    var spy = benchmarkWindow();
 
     var W = 720, H = 320, L = 52, R = 14, T = 14, B = 30;
-    var spy = (D.benchmark && D.benchmark[period]) || [];
+    var svg = $("chart");
     var all = [];
     series.forEach(function (s) { s.pts.forEach(function (p) { all.push(p); }); });
     spy.forEach(function (p) { all.push(p); });
-    var svg = $("chart");
     if (!all.length) {
-      svg.innerHTML = '<text x="' + W / 2 + '" y="' + H / 2 + '" text-anchor="middle">Pick a strategy to see its curve.</text>';
+      svg.innerHTML = '<text x="' + W / 2 + '" y="' + H / 2 + '" text-anchor="middle">No curves for these dates. Pick other dates or turn on a strategy.</text>';
       $("legend").innerHTML = ""; $("chart-foot").textContent = "";
       return;
     }
@@ -463,49 +545,42 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
     y0 -= pad; y1 += pad;
     function X(t) { return L + (t - x0) / (x1 - x0 || 1) * (W - L - R); }
     function Y(v) { return T + (1 - (v - y0) / (y1 - y0 || 1)) * (H - T - B); }
+    function pathOf(pts) {
+      return pts.map(function (p, j) { return (j ? "L" : "M") + X(Date.parse(p[0])).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
+    }
 
     var out = [];
-    var ticks = 5;
-    for (var i = 0; i <= ticks; i++) {
-      var v = y0 + (y1 - y0) * i / ticks;
+    for (var i = 0; i <= 5; i++) {
+      var v = y0 + (y1 - y0) * i / 5;
       out.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(v) + '" y2="' + Y(v) + '" stroke="var(--line)" stroke-width="1"/>');
       out.push('<text x="' + (L - 8) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + Math.round(v) + "%</text>");
     }
-    out.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3"/>');
+    out.push('<line x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(0) + '" y2="' + Y(0) + '" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 3"/>');
     [0, 0.5, 1].forEach(function (f) {
       var t = x0 + (x1 - x0) * f;
-      var d = new Date(t).toISOString().slice(0, 7);
       var anchor = f === 0 ? "start" : (f === 1 ? "end" : "middle");
-      out.push('<text x="' + X(t) + '" y="' + (H - 8) + '" text-anchor="' + anchor + '">' + d + "</text>");
+      out.push('<text x="' + X(t) + '" y="' + (H - 8) + '" text-anchor="' + anchor + '">' + new Date(t).toISOString().slice(0, 7) + "</text>");
     });
     if (spy.length) {
-      var spyD = spy.map(function (p, j) { return (j ? "L" : "M") + X(Date.parse(p[0])).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
-      out.push('<path d="' + spyD + '" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>');
+      out.push('<path d="' + pathOf(spy) + '" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 4" stroke-linejoin="round"/>');
     }
     series.forEach(function (s) {
       if (!s.pts.length) return;
-      var d = s.pts.map(function (p, j) { return (j ? "L" : "M") + X(Date.parse(p[0])).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
-      out.push('<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round"/>');
+      out.push('<path d="' + pathOf(s.pts) + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round"/>');
       var last = s.pts[s.pts.length - 1];
       out.push('<circle cx="' + X(Date.parse(last[0])).toFixed(1) + '" cy="' + Y(last[1]).toFixed(1) + '" r="3.5" fill="' + s.color + '"/>');
     });
     svg.innerHTML = out.join("");
 
-    $("legend").innerHTML = strategyNames.map(function (n) {
-      var color = PALETTE[strategyNames.indexOf(n) % PALETTE.length];
-      return '<label><input type="checkbox" data-strat="' + esc(n) + '"' + (shown[n] ? " checked" : "") + '><span class="swatch" style="background:' + color + '"></span>' + esc(n) + "</label>";
-    }).join("");
+    $("legend").innerHTML = names.map(function (n) {
+      return '<label><input type="checkbox" data-strat="' + esc(n) + '"' + (shown[n] ? " checked" : "") + '><span class="swatch" style="background:' + colorOf(n) + '"></span>' + esc(n) + "</label>";
+    }).join("") + (spy.length ? '<span class="legend-note" style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;border-top:2px dashed var(--muted);display:inline-block"></span>SPY buy and hold</span>' : "");
 
-    if (spy.length) {
-      $("legend").innerHTML += '<span class="legend-note" style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;border-top:2px dashed var(--muted);display:inline-block"></span>SPY buy and hold</span>';
-    }
-
-    var foot = series.map(function (s) {
-      var last = s.pts.length ? s.pts[s.pts.length - 1][1] : null;
-      return s.name + " ends " + fmtPct(last);
+    var ends = series.filter(function (s) { return s.pts.length; }).map(function (s) {
+      return s.name + " ends " + fmtPct(s.pts[s.pts.length - 1][1]);
     });
-    if (spy.length) foot.unshift("SPY buy and hold ends " + fmtPct(spy[spy.length - 1][1]));
-    $("chart-foot").textContent = foot.join(" · ") + ". Dashed grey line is SPY.";
+    if (spy.length) ends.unshift("SPY buy and hold ends " + fmtPct(spy[spy.length - 1][1]));
+    $("chart-foot").textContent = ends.join(" · ") + ". Dashed grey line is SPY.";
   }
 
   $("legend").addEventListener("change", function (e) {
@@ -514,46 +589,47 @@ fetch("results/dashboard-data.json", { cache: "no-store" })
     shown[cb.getAttribute("data-strat")] = cb.checked;
     renderChart();
   });
-  $("chart-period").addEventListener("change", renderChart);
   $("chart-symbol").addEventListener("change", renderChart);
 
   /* ---- Strategy cards ---- */
   $("cards").innerHTML = D.strategies.map(function (s) {
     var params = Object.keys(s.params || {}).map(function (k) { return esc(k) + " = " + esc(s.params[k]); }).join(", ") || "none";
-    var stops = [];
-    if (s.stop_pct) stops.push("stop " + (s.stop_pct * 100).toFixed(1) + "%");
-    if (s.target_pct) stops.push("target " + (s.target_pct * 100).toFixed(1) + "%");
+    var risk = [];
+    if (s.stop_pct) risk.push("stop " + (s.stop_pct * 100).toFixed(1) + "%");
+    if (s.target_pct) risk.push("target " + (s.target_pct * 100).toFixed(1) + "%");
+    var where = s.symbols && s.symbols.length ? " Runs only on " + s.symbols.join(", ") + "." : "";
     return '<article class="card">' +
       '<div><div class="tag">v' + esc(s.version) + " · " + esc(s.timeframe) + '</div><h3>' + esc(s.name) + "</h3></div>" +
       "<p>" + esc(s.summary) + "</p>" +
       "<dl>" +
       "<dt>Entry</dt><dd>" + esc(s.entry_rules) + "</dd>" +
       "<dt>Exit</dt><dd>" + esc(s.exit_rules) + "</dd>" +
-      "<dt>Risk</dt><dd>" + esc(stops.length ? stops.join(", ") : "No stop or target") + ". Uses " + Math.round(s.position_fraction * 100) + "% of cash per trade.</dd>" +
+      "<dt>Risk</dt><dd>" + esc(risk.length ? risk.join(", ") : "No stop or target") + ". Uses " + Math.round(s.position_fraction * 100) + "% of cash per trade." + esc(where) + "</dd>" +
       "<dt>Settings</dt><dd class='num'>" + params + "</dd>" +
       "<dt>Weak spots</dt><dd>" + esc(s.weaknesses) + "</dd>" +
       "</dl></article>";
   }).join("");
 
   /* ---- Notes ---- */
-  var blown = D.details.filter(function (r) { return r.total_return_pct <= -100; });
-  var notes = [
-    "<strong>How to read this.</strong> Out-of-sample results come from the last 30% of history. The screen never used that data to pick a strategy, so it's the more honest number.",
-    "<strong>Margin calls.</strong> If a strategy would wipe out the account, the engine closes it and stops trading, so the lowest possible return is -100%." +
-      (blown.length ? " " + blown.length + " run" + (blown.length === 1 ? " hit" : "s hit") + " that limit." : "")
-  ];
-  $("notes").innerHTML = notes.map(function (t) { return "<p>" + t + "</p>"; }).join("");
+  var blown = D.details.filter(function (r) { return r.total_return_pct <= -100; }).length;
+  $("notes").innerHTML = [
+    "<p><strong>Out-of-sample</strong> results come from the last 30% of history. The screen never used that data to pick a strategy, so they are the more honest number. The strategies were added after that data was already seen, though, so treat the ranking with some caution.</p>",
+    "<p><strong>Full history and custom dates</strong> are rebuilt from weekly equity curves, so they show return, drawdown and the SPY comparison only.</p>",
+    "<p><strong>Margin calls.</strong> If a strategy would wipe out the account, the engine closes it and stops trading, so the lowest possible return is -100%." +
+      (blown ? " " + blown + " run" + (blown === 1 ? " hit" : "s hit") + " that limit." : "") + "</p>"
+  ].join("");
 
-  /* ---- First render ---- */
-  $("stock-pick").value = selectedStrategy;
-  renderLeaderboard();
-  renderStocks();
-  renderChart();
+  function renderAll() {
+    renderLeaderboard();
+    renderStocks();
+    renderChart();
+  }
+  $("stock-pick").value = selected;
+  renderAll();
 })
 .catch(function () {
   document.getElementById("meta").textContent = "No results yet. Run the backtest on GitHub first.";
 });
 </script>
-
 </body>
 </html>

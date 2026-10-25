@@ -2,7 +2,7 @@
   "symbols": ["AAPL", "MSFT", "SPY", "QQQ", "NVDA", "TSLA", "AMD", "PLTR"],
   "benchmark": "SPY",
   "timeframe": "1Day",
-  "start": "2021-01-01",
+  "start": "2016-01-01",
   "end": "2026-10-20",
   "holdout_fraction": 0.3,
   "position_fraction": 1.0,
